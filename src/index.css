@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Mona sans';
+}
+
+:root {
+  /* Background Colors */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f7f8fd;
+  --color-bg-tertiary: #f4f5fa;
+  --color-bg-accent: #ffe6d5;
+  --color-bg-light: #eaeaeb;
+  --color-bg-highlight: #ffe314;
+  --color-bg-highlight-alt: #fee214;
+  --color-bg-warning: #ffc74b;
+  --color-bg-success: #033500;
+  --color-bg-success-dark: #143011;
+
+  /* Text Colors */
+  --color-text-primary: #000000;
+  --color-text-secondary: #1e2024;
+  --color-text-tertiary: #575a5f;
+  --color-text-light: #cacaca;
+  --color-text-accent: #737373;
+  --color-text-dark: #033500;
+
+  /* Border Colors */
+  --color-border-light: #ffffff1f;
+  --color-border-default: #ebebeb;
+  --color-border-accent: #ffc74b;
+
+  /* Fill Colors */
+  --color-fill-white: #ffffff;
+  --color-fill-highlight: #ffe314;
+  --color-fill-highlight-alt: #fee214;
+  --color-fill-warning: #ffc74b;
+  --color-fill-success: #033500;
+  --color-fill-dark: #1e2024;
+}
