@@ -2,12 +2,13 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import { Clock, Send, Wallet, Users, Split, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, X, ExternalLink } from 'lucide-react';
 import { Navbar } from './Navbar';
+import { TransactionDetails } from './TransactionDetails';
 
 interface QuorumMember {
   id: string;
 }
 
-interface TransactionDetails {
+interface TransactionDetailsData {
   parentTokenId: string;
   amount: string;
   tokenLevel: string;
@@ -30,28 +31,9 @@ export function TokenDetails() {
   const transactionsPerPage = 10;
   const totalTransactions = 30; // Mock total count
   const [isOffcanvasOpen, setIsOffcanvasOpen] = React.useState(false);
-  const [selectedTransaction, setSelectedTransaction] = React.useState<TransactionDetails | null>(null);
-  const [isTokenInfoExpanded, setIsTokenInfoExpanded] = React.useState(false);
-  const [isQuorumListExpanded, setIsQuorumListExpanded] = React.useState(false);
+  const [selectedTransaction, setSelectedTransaction] = React.useState<TransactionDetailsData | null>(null);
   const totalPages = Math.ceil(totalTransactions / transactionsPerPage);
-  const offcanvasRef = React.useRef<HTMLDivElement>(null);
 
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (offcanvasRef.current && !offcanvasRef.current.contains(event.target as Node)) {
-        setIsOffcanvasOpen(false);
-      }
-    };
-
-    if (isOffcanvasOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOffcanvasOpen]);
-  
   const handleViewDetails = (transaction: any) => {
     setSelectedTransaction({
       parentTokenId: "0x7d8f74j44nj0m...",
@@ -101,7 +83,7 @@ export function TokenDetails() {
   const handleJumpToPage = (e: React.FormEvent) => {
     e.preventDefault();
     const pageNum = parseInt(jumpToPage);
-    
+
     if (isNaN(pageNum)) {
       setJumpError('Please enter a valid number');
     } else if (pageNum < 1 || pageNum > totalPages) {
@@ -141,10 +123,6 @@ export function TokenDetails() {
     tokenNumber: "#12345",
     parentId: "0x4f7e..."
   };
-
-  const quorumList: QuorumMember[] = Array.from({ length: 7 }, () => ({
-    id: Array.from({ length: 16 }, () => Math.floor(Math.random() * 16).toString(16)).join('')
-  }));
 
   return (
     <div className="min-h-screen bg-[var(--color-bg-primary)]">
@@ -223,7 +201,7 @@ export function TokenDetails() {
                 <Split className="w-5 h-5 text-[var(--color-bg-success)]" />
                 <p className="text-[var(--color-text-primary)]">This token is split into parts</p>
               </div>
-              <button 
+              <button
                 className="px-4 py-2 bg-[var(--color-bg-success)] text-white rounded-lg flex items-center gap-2 hover:bg-[var(--color-bg-success-dark)] transition-colors"
                 onClick={() => {
                   setIsViewingParts(true);
@@ -277,112 +255,6 @@ export function TokenDetails() {
                 ))}
               </tbody>
             </table>
-            {/* Offcanvas */}
-            {isOffcanvasOpen && selectedTransaction && (
-              <>
-                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 overflow-hidden">
-                  <div ref={offcanvasRef} className="fixed right-0 top-0 h-full w-full max-w-lg bg-white shadow-xl flex flex-col">
-                    <div className="flex items-center justify-between p-6 border-b border-[var(--color-border-default)]">
-                      <h3 className="text-lg font-semibold">Transaction Details</h3>
-                      <button
-                        onClick={() => setIsOffcanvasOpen(false)}
-                        className="p-2 hover:bg-[var(--color-bg-secondary)] rounded-full transition-colors"
-                      >
-                        <X className="w-5 h-5" />
-                      </button>
-                    </div>
-                    <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                      <div className="border border-[var(--color-border-default)] rounded-lg shadow-sm">
-                        <button
-                          onClick={() => setIsTokenInfoExpanded(!isTokenInfoExpanded)}
-                          className="w-full flex items-center justify-between p-4 text-left hover:bg-[var(--color-bg-secondary)] transition-colors"
-                        >
-                          <span className="font-medium">Token Information</span>
-                          {isTokenInfoExpanded ? (
-                            <ChevronUp className="w-5 h-5" />
-                          ) : (
-                            <ChevronDown className="w-5 h-5" />
-                          )}
-                        </button>
-                        {isTokenInfoExpanded && (
-                          <div className="p-4 border-t border-[var(--color-border-default)] space-y-4 bg-[var(--color-bg-secondary)]">
-                            <div>
-                              <p className="text-sm text-[var(--color-text-tertiary)]">Parent Token ID</p>
-                              <p className="font-medium">{selectedTransaction.parentTokenId}</p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-[var(--color-text-tertiary)]">Amount</p>
-                              <p className="font-medium">{selectedTransaction.amount}</p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-[var(--color-text-tertiary)]">Token Level</p>
-                              <p className="font-medium">{selectedTransaction.tokenLevel}</p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-[var(--color-text-tertiary)]">Token Number</p>
-                              <p className="font-medium">{selectedTransaction.tokenNumber}</p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      <div className="space-y-4 bg-white rounded-lg border border-[var(--color-border-default)] p-4">
-                        <h4 className="font-medium text-lg">Transaction History</h4>
-                        <div className="space-y-4">
-                          <div>
-                            <p className="text-sm text-[var(--color-text-tertiary)]">Transaction ID</p>
-                            <p className="font-medium">{selectedTransaction.transactionId}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-[var(--color-text-tertiary)]">Sender ID</p>
-                            <p className="font-medium">{selectedTransaction.senderId}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-[var(--color-text-tertiary)]">Receiver ID</p>
-                            <p className="font-medium">{selectedTransaction.receiverId}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-[var(--color-text-tertiary)]">Timestamp</p>
-                            <p className="font-medium">{selectedTransaction.timestamp}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-[var(--color-text-tertiary)]">Amount</p>
-                            <p className="font-medium">{selectedTransaction.amount_rbt} RBT</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-[var(--color-text-tertiary)]">Type</p>
-                            <p className="font-medium">{selectedTransaction.type}</p>
-                          </div>
-                          <div className="border border-[var(--color-border-default)] rounded-lg shadow-sm">
-                            <button
-                              onClick={() => setIsQuorumListExpanded(!isQuorumListExpanded)}
-                              className="w-full flex items-center justify-between p-4 text-left hover:bg-[var(--color-bg-secondary)] transition-colors"
-                            >
-                              <span className="font-medium">Quorum List</span>
-                              {isQuorumListExpanded ? (
-                                <ChevronUp className="w-5 h-5" />
-                              ) : (
-                                <ChevronDown className="w-5 h-5" />
-                              )}
-                            </button>
-                            {isQuorumListExpanded && (
-                              <div className="p-4 border-t border-[var(--color-border-default)] bg-[var(--color-bg-secondary)]">
-                                <div className="space-y-2">
-                                  {quorumList.map((member, index) => (
-                                    <div key={index} className="flex items-center gap-2">
-                                      <p className="font-mono text-sm text-[var(--color-text-primary)]">{member.id}</p>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
           </div>
           <div className="px-4 py-3 border-t border-[var(--color-border-default)] bg-[var(--color-bg-secondary)] flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-sm text-[var(--color-text-tertiary)]">
@@ -402,13 +274,12 @@ export function TokenDetails() {
                     key={idx}
                     onClick={() => typeof pageNum === 'number' && setCurrentPage(pageNum)}
                     disabled={pageNum === '...' || pageNum === currentPage}
-                    className={`w-10 h-10 flex items-center justify-center rounded border ${
-                      pageNum === currentPage
-                        ? 'bg-[var(--color-bg-success)] text-white border-[var(--color-bg-success)]'
-                        : pageNum === '...'
+                    className={`w-10 h-10 flex items-center justify-center rounded border ${pageNum === currentPage
+                      ? 'bg-[var(--color-bg-success)] text-white border-[var(--color-bg-success)]'
+                      : pageNum === '...'
                         ? 'cursor-default'
                         : 'hover:bg-[var(--color-bg-secondary)] transition-colors'
-                    }`}
+                      }`}
                   >
                     {pageNum}
                   </button>
@@ -426,9 +297,8 @@ export function TokenDetails() {
                         placeholder={currentPage.toString()}
                         min="1"
                         max={totalPages}
-                        className={`w-20 px-3 py-2 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-bg-success)] text-center ${
-                          jumpError ? 'border-red-500' : ''
-                        }`}
+                        className={`w-20 px-3 py-2 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-bg-success)] text-center ${jumpError ? 'border-red-500' : ''
+                          }`}
                         aria-label={`Go to page (1-${totalPages})`}
                       />
                       <button
@@ -458,6 +328,12 @@ export function TokenDetails() {
           </div>
         </div>
       </main>
+
+      <TransactionDetails
+        isOpen={isOffcanvasOpen}
+        onClose={() => setIsOffcanvasOpen(false)}
+        transaction={selectedTransaction}
+      />
     </div>
   );
 }
