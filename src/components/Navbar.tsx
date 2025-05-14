@@ -1,12 +1,12 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
-import { RubixLogo } from '../assets/logo';
 
 interface NavbarProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   showSearch?: boolean;
+  onSearch?: () => void;
 }
 
 export function Navbar({ searchQuery, setSearchQuery, showSearch = true, onSearch }: NavbarProps) {
@@ -17,11 +17,11 @@ export function Navbar({ searchQuery, setSearchQuery, showSearch = true, onSearc
       <div className="container mx-auto px-6 py-4">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-8">
-            <div 
+            <div
               onClick={() => navigate('/')}
               className="text-2xl font-semibold text-[var(--color-text-dark)] cursor-pointer flex items-center"
             >
-              <RubixLogo />
+              <img src="/logo.png" alt="Rubix Logo" className="h-8" />
             </div>
           </div>
           {showSearch && <div className="flex items-center gap-4">
@@ -46,7 +46,7 @@ export function Navbar({ searchQuery, setSearchQuery, showSearch = true, onSearc
                   </button>
                 )}
               </div>
-              <button 
+              <button
                 className="px-4 py-2 bg-[var(--color-bg-success)] text-white rounded-lg flex items-center gap-2 hover:bg-[var(--color-bg-success-dark)] transition-colors"
                 onClick={() => {
                   if (searchQuery) {
