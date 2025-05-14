@@ -186,6 +186,17 @@ export function TokenDetails() {
       });
   };
 
+  React.useEffect(() => {
+    if (isOffcanvasOpen) {
+      document.body.classList.add('overflow-hidden');
+    } else {
+      document.body.classList.remove('overflow-hidden');
+    }
+    return () => {
+      document.body.classList.remove('overflow-hidden');
+    };
+  }, [isOffcanvasOpen]);
+
   return (
     <div className="min-h-screen bg-[var(--color-bg-primary)]">
       <Navbar searchQuery={searchQuery} setSearchQuery={setSearchQuery} showSearch={true} />
