@@ -1,11 +1,12 @@
 import React from 'react';
-import { Box, ArrowUpRight, ChevronLeft, ChevronRight, BarChart as ChartIcon, ExternalLink, Wallet, Users, X, Info, Search } from 'lucide-react';
+import { Box, ArrowUpRight, ChevronLeft, ChevronRight, BarChart as ChartIcon, ExternalLink, Wallet, Users, X, Info, Search, Copy, Check } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { AnimatedCounter } from './AnimatedCounter';
 import { Navbar } from './Navbar';
 import { TransactionDetails } from './TransactionDetails';
+import { shortenString, copyToClipboard } from '../utils/format';
 
 // Import TransactionDetailsData interface so we can properly type our state
 interface TransactionDetailsData {
@@ -31,6 +32,9 @@ export function Dashboard() {
   const [jumpError, setJumpError] = React.useState('');
   const [isOffcanvasOpen, setIsOffcanvasOpen] = React.useState(false);
   const [selectedTransaction, setSelectedTransaction] = React.useState<TransactionDetailsData | null>(null);
+  const [copiedTxId, setCopiedTxId] = React.useState<string | null>(null);
+  const [copiedSenderId, setCopiedSenderId] = React.useState<string | null>(null);
+  const [copiedReceiverId, setCopiedReceiverId] = React.useState<string | null>(null);
   const transactionsPerPage = 10;
   const totalTransactions = 100;
   const totalPages = Math.ceil(totalTransactions / transactionsPerPage);
@@ -41,17 +45,16 @@ export function Dashboard() {
     receiverId: string;
     timestamp: Date;
     amount: string;
-    subnetId: string;
   }) => {
     // Format the transaction to match the TransactionDetails component's expected format
     setSelectedTransaction({
-      parentTokenId: "0x7d8f74j44nj0m...", // Mock parent token ID
+      parentTokenId: "0xd22b9feaa8a378bd0dac899d439a323f278b47a31e46c00250e2f1378eb48379", // Mock parent token ID
       amount: transaction.amount,
       tokenLevel: "Level 1", // Mock token level
       tokenNumber: "#" + Math.random().toString().slice(2, 12), // Mock token number
       transactionId: transaction.txId,
-      senderId: transaction.senderId,
-      receiverId: transaction.receiverId,
+      senderId: transaction.senderId, // Store the full ID
+      receiverId: transaction.receiverId, // Store the full ID
       timestamp: transaction.timestamp.toLocaleString(),
       amount_rbt: transaction.amount,
       type: "RBT"
@@ -118,7 +121,6 @@ export function Dashboard() {
       timestamp: new Date(Date.now() - Math.random() * 86400000),
       amount: (Math.random() * 100).toFixed(2),
       type: index % 2 === 0 ? 'sent' : 'received',
-      subnetId: `SN-${Math.random().toString(16).slice(2, 6)}`
     }));
   }, []);
 
@@ -163,6 +165,31 @@ export function Dashboard() {
     (currentPage - 1) * transactionsPerPage,
     currentPage * transactionsPerPage
   );
+
+  // Copy functions for different fields
+  const handleCopyTxId = (txId: string) => {
+    copyToClipboard(txId)
+      .then(() => {
+        setCopiedTxId(txId);
+        setTimeout(() => setCopiedTxId(null), 2000); // Reset after 2 seconds
+      });
+  };
+
+  const handleCopySenderId = (senderId: string) => {
+    copyToClipboard(senderId)
+      .then(() => {
+        setCopiedSenderId(senderId);
+        setTimeout(() => setCopiedSenderId(null), 2000); // Reset after 2 seconds
+      });
+  };
+
+  const handleCopyReceiverId = (receiverId: string) => {
+    copyToClipboard(receiverId)
+      .then(() => {
+        setCopiedReceiverId(receiverId);
+        setTimeout(() => setCopiedReceiverId(null), 2000); // Reset after 2 seconds
+      });
+  };
 
   return (
     <div className="min-h-screen bg-[var(--color-bg-primary)]">
@@ -404,11 +431,50 @@ export function Dashboard() {
                     {currentTransactions.map((tx) => (
                       <tr key={tx.id} className="hover:bg-[var(--color-bg-secondary)]">
                         <td className="px-4 py-3 text-sm text-[var(--color-text-primary)]">{tx.id}</td>
-                        <td className="px-4 py-3 text-sm text-[var(--color-bg-success)]">{tx.txId}</td>
-                        <td className="px-4 py-3 text-sm text-[var(--color-text-primary)]">{tx.senderId}</td>
-                        <td className="px-4 py-3 text-sm text-[var(--color-text-primary)]">{tx.receiverId}</td>
+                        <td className="px-4 py-3 text-sm text-[var(--color-bg-success)]">
+                          <span title={tx.txId}>{shortenString(tx.txId)}</span>
+                          <button
+                            onClick={() => handleCopyTxId(tx.txId)}
+                            className="p-1 ml-1 hover:bg-[var(--color-bg-secondary)] rounded-full transition-colors"
+                            title="Copy Transaction ID"
+                          >
+                            {copiedTxId === tx.txId ? (
+                              <Check className="w-4 h-4 text-[var(--color-bg-success)]" />
+                            ) : (
+                              <Copy className="w-4 h-4 text-[var(--color-text-tertiary)]" />
+                            )}
+                          </button>
+                        </td>
                         <td className="px-4 py-3 text-sm text-[var(--color-text-primary)]">
-                          {tx.timestamp.toLocaleString()}
+                          <span title={tx.senderId}>{shortenString(tx.senderId)}</span>
+                          <button
+                            onClick={() => handleCopySenderId(tx.senderId)}
+                            className="p-1 ml-1 hover:bg-[var(--color-bg-secondary)] rounded-full transition-colors"
+                            title="Copy Sender ID"
+                          >
+                            {copiedSenderId === tx.senderId ? (
+                              <Check className="w-4 h-4 text-[var(--color-bg-success)]" />
+                            ) : (
+                              <Copy className="w-4 h-4 text-[var(--color-text-tertiary)]" />
+                            )}
+                          </button>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-[var(--color-text-primary)]">
+                          <span title={tx.receiverId}>{shortenString(tx.receiverId)}</span>
+                          <button
+                            onClick={() => handleCopyReceiverId(tx.receiverId)}
+                            className="p-1 ml-1 hover:bg-[var(--color-bg-secondary)] rounded-full transition-colors"
+                            title="Copy Receiver ID"
+                          >
+                            {copiedReceiverId === tx.receiverId ? (
+                              <Check className="w-4 h-4 text-[var(--color-bg-success)]" />
+                            ) : (
+                              <Copy className="w-4 h-4 text-[var(--color-text-tertiary)]" />
+                            )}
+                          </button>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-[var(--color-text-primary)]">
+                          {tx.timestamp.toISOString().slice(0, 10)} / {tx.timestamp.toISOString().slice(11, 16)}
                         </td>
                         <td className="px-4 py-3 text-sm text-[var(--color-text-primary)]">
                           {tx.amount}

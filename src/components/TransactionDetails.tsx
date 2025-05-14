@@ -1,5 +1,6 @@
 import React from 'react';
-import { X, ChevronUp, ChevronDown } from 'lucide-react';
+import { X, ChevronUp, ChevronDown, Copy, Check } from 'lucide-react';
+import { shortenString, copyToClipboard } from '../utils/format';
 
 interface QuorumMember {
     id: string;
@@ -27,6 +28,7 @@ interface TransactionDetailsData {
 export function TransactionDetails({ isOpen, onClose, transaction }: TransactionDetailsProps) {
     const [isTokenInfoExpanded, setIsTokenInfoExpanded] = React.useState(false);
     const [isQuorumListExpanded, setIsQuorumListExpanded] = React.useState(false);
+    const [copiedId, setCopiedId] = React.useState<string | null>(null);
     const offcanvasRef = React.useRef<HTMLDivElement>(null);
 
     React.useEffect(() => {
@@ -44,6 +46,15 @@ export function TransactionDetails({ isOpen, onClose, transaction }: Transaction
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [isOpen, onClose]);
+
+    // Handle copying ID to clipboard
+    const handleCopyId = (id: string) => {
+        copyToClipboard(id)
+            .then(() => {
+                setCopiedId(id);
+                setTimeout(() => setCopiedId(null), 2000); // Reset after 2 seconds
+            });
+    };
 
     // Mock quorum list data
     const quorumList: QuorumMember[] = Array.from({ length: 7 }, () => ({
@@ -81,7 +92,22 @@ export function TransactionDetails({ isOpen, onClose, transaction }: Transaction
                             <div className="p-4 border-t border-[var(--color-border-default)] space-y-4 bg-[var(--color-bg-secondary)]">
                                 <div>
                                     <p className="text-sm text-[var(--color-text-tertiary)]">Parent Token ID</p>
-                                    <p className="font-medium">{transaction.parentTokenId}</p>
+                                    <div className="relative">
+                                        <p className="font-medium pr-6" title={transaction.parentTokenId}>
+                                            {shortenString(transaction.parentTokenId)}
+                                        </p>
+                                        <button
+                                            onClick={() => handleCopyId(transaction.parentTokenId)}
+                                            className="p-1 hover:bg-[var(--color-bg-tertiary)] rounded-full transition-colors absolute right-0 top-1/2 transform -translate-y-1/2"
+                                            title="Copy Parent Token ID"
+                                        >
+                                            {copiedId === transaction.parentTokenId ? (
+                                                <Check className="w-4 h-4 text-[var(--color-bg-success)]" />
+                                            ) : (
+                                                <Copy className="w-4 h-4 text-[var(--color-text-tertiary)]" />
+                                            )}
+                                        </button>
+                                    </div>
                                 </div>
                                 <div>
                                     <p className="text-sm text-[var(--color-text-tertiary)]">Amount</p>
@@ -103,19 +129,73 @@ export function TransactionDetails({ isOpen, onClose, transaction }: Transaction
                         <div className="space-y-4">
                             <div>
                                 <p className="text-sm text-[var(--color-text-tertiary)]">Transaction ID</p>
-                                <p className="font-medium">{transaction.transactionId}</p>
+                                <div className="relative">
+                                    <p className="font-medium pr-6" title={transaction.transactionId}>
+                                        {shortenString(transaction.transactionId)}
+                                    </p>
+                                    <button
+                                        onClick={() => handleCopyId(transaction.transactionId)}
+                                        className="p-1 hover:bg-[var(--color-bg-tertiary)] rounded-full transition-colors absolute right-0 top-1/2 transform -translate-y-1/2"
+                                        title="Copy Transaction ID"
+                                    >
+                                        {copiedId === transaction.transactionId ? (
+                                            <Check className="w-4 h-4 text-[var(--color-bg-success)]" />
+                                        ) : (
+                                            <Copy className="w-4 h-4 text-[var(--color-text-tertiary)]" />
+                                        )}
+                                    </button>
+                                </div>
                             </div>
                             <div>
                                 <p className="text-sm text-[var(--color-text-tertiary)]">Sender ID</p>
-                                <p className="font-medium">{transaction.senderId}</p>
+                                <div className="relative">
+                                    <p className="font-medium pr-6" title={transaction.senderId}>
+                                        {shortenString(transaction.senderId)}
+                                    </p>
+                                    <button
+                                        onClick={() => handleCopyId(transaction.senderId)}
+                                        className="p-1 hover:bg-[var(--color-bg-tertiary)] rounded-full transition-colors absolute right-0 top-1/2 transform -translate-y-1/2"
+                                        title="Copy Sender ID"
+                                    >
+                                        {copiedId === transaction.senderId ? (
+                                            <Check className="w-4 h-4 text-[var(--color-bg-success)]" />
+                                        ) : (
+                                            <Copy className="w-4 h-4 text-[var(--color-text-tertiary)]" />
+                                        )}
+                                    </button>
+                                </div>
                             </div>
                             <div>
                                 <p className="text-sm text-[var(--color-text-tertiary)]">Receiver ID</p>
-                                <p className="font-medium">{transaction.receiverId}</p>
+                                <div className="relative">
+                                    <p className="font-medium pr-6" title={transaction.receiverId}>
+                                        {shortenString(transaction.receiverId)}
+                                    </p>
+                                    <button
+                                        onClick={() => handleCopyId(transaction.receiverId)}
+                                        className="p-1 hover:bg-[var(--color-bg-tertiary)] rounded-full transition-colors absolute right-0 top-1/2 transform -translate-y-1/2"
+                                        title="Copy Receiver ID"
+                                    >
+                                        {copiedId === transaction.receiverId ? (
+                                            <Check className="w-4 h-4 text-[var(--color-bg-success)]" />
+                                        ) : (
+                                            <Copy className="w-4 h-4 text-[var(--color-text-tertiary)]" />
+                                        )}
+                                    </button>
+                                </div>
                             </div>
                             <div>
                                 <p className="text-sm text-[var(--color-text-tertiary)]">Timestamp</p>
-                                <p className="font-medium">{transaction.timestamp}</p>
+                                <p className="font-medium">
+                                    {(() => {
+                                        try {
+                                            const date = new Date(transaction.timestamp);
+                                            return `${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}, ${date.toLocaleDateString()}`;
+                                        } catch (e) {
+                                            return transaction.timestamp;
+                                        }
+                                    })()}
+                                </p>
                             </div>
                             <div>
                                 <p className="text-sm text-[var(--color-text-tertiary)]">Amount</p>
@@ -141,8 +221,21 @@ export function TransactionDetails({ isOpen, onClose, transaction }: Transaction
                                     <div className="p-4 border-t border-[var(--color-border-default)] bg-[var(--color-bg-secondary)]">
                                         <div className="space-y-2">
                                             {quorumList.map((member, index) => (
-                                                <div key={index} className="flex items-center gap-2">
-                                                    <p className="font-mono text-sm text-[var(--color-text-primary)]">{member.id}</p>
+                                                <div key={index} className="relative py-1">
+                                                    <p className="font-mono text-sm text-[var(--color-text-primary)] pr-6" title={member.id}>
+                                                        {shortenString(member.id)}
+                                                    </p>
+                                                    <button
+                                                        onClick={() => handleCopyId(member.id)}
+                                                        className="p-1 hover:bg-[var(--color-bg-tertiary)] rounded-full transition-colors absolute right-0 top-1/2 transform -translate-y-1/2"
+                                                        title="Copy ID"
+                                                    >
+                                                        {copiedId === member.id ? (
+                                                            <Check className="w-4 h-4 text-[var(--color-bg-success)]" />
+                                                        ) : (
+                                                            <Copy className="w-4 h-4 text-[var(--color-text-tertiary)]" />
+                                                        )}
+                                                    </button>
                                                 </div>
                                             ))}
                                         </div>

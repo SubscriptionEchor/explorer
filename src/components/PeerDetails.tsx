@@ -1,7 +1,8 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Wallet, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, X, ExternalLink } from 'lucide-react';
+import { Wallet, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, X, ExternalLink, Copy, Check } from 'lucide-react';
 import { Navbar } from './Navbar';
+import { shortenString, copyToClipboard } from '../utils/format';
 
 interface TokenInfo {
   tokenId: string;
@@ -28,6 +29,7 @@ export function PeerDetails() {
   const [isOffcanvasOpen, setIsOffcanvasOpen] = React.useState(false);
   const [selectedToken, setSelectedToken] = React.useState<TokenDetailsOffcanvas | null>(null);
   const [isTokenInfoExpanded, setIsTokenInfoExpanded] = React.useState(false);
+  const [copiedTokenId, setCopiedTokenId] = React.useState<string | null>(null);
   const tokensPerPage = 10;
   const totalTokens = 50;
   const totalPages = Math.ceil(totalTokens / tokensPerPage);
@@ -75,7 +77,7 @@ export function PeerDetails() {
   const handleJumpToPage = (e: React.FormEvent) => {
     e.preventDefault();
     const pageNum = parseInt(jumpToPage);
-    
+
     if (isNaN(pageNum)) {
       setJumpError('Please enter a valid number');
     } else if (pageNum < 1 || pageNum > totalPages) {
@@ -90,6 +92,14 @@ export function PeerDetails() {
   const handleJumpInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setJumpToPage(e.target.value);
     setJumpError('');
+  };
+
+  const handleCopyTokenId = (tokenId: string) => {
+    copyToClipboard(tokenId)
+      .then(() => {
+        setCopiedTokenId(tokenId);
+        setTimeout(() => setCopiedTokenId(null), 2000);
+      });
   };
 
   const tokens = React.useMemo(() => {
@@ -116,7 +126,7 @@ export function PeerDetails() {
           </h1>
           <div>
             <span className="px-4 py-2 bg-[var(--color-bg-secondary)] rounded-lg text-[var(--color-text-tertiary)]">
-              Peer ID: {peerId}
+              Peer ID: {shortenString(peerId || '')}
             </span>
           </div>
         </div>
@@ -160,7 +170,15 @@ export function PeerDetails() {
                 {currentTokens.map((token, index) => (
                   <tr key={index} className="hover:bg-[var(--color-bg-secondary)]">
                     <td className="px-4 sm:px-6 py-4 text-sm text-[var(--color-text-primary)]">{(currentPage - 1) * tokensPerPage + index + 1}</td>
-                    <td className="px-4 sm:px-6 py-4 text-sm text-[var(--color-text-primary)]">{token.tokenId}</td>
+                    <td className="px-4 sm:px-6 py-4 text-sm text-[var(--color-text-primary)]">
+                      <span title={token.tokenId}>{shortenString(token.tokenId)}</span>
+                      <button
+                        onClick={() => handleCopyTokenId(token.tokenId)}
+                        className="text-[var(--color-bg-success)] hover:text-[var(--color-bg-success-dark)] font-medium ml-2"
+                      >
+                        {copiedTokenId === token.tokenId ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                      </button>
+                    </td>
                     <td className="px-4 sm:px-6 py-4 text-sm text-[var(--color-text-primary)]">{token.tokenValue}</td>
                     <td className="px-4 sm:px-6 py-4 text-sm text-[var(--color-text-primary)]">{token.tokenLevel}</td>
                     <td className="px-4 sm:px-6 py-4 text-sm text-[var(--color-text-primary)]">RBT</td>
@@ -250,13 +268,12 @@ export function PeerDetails() {
                     key={idx}
                     onClick={() => typeof pageNum === 'number' && setCurrentPage(pageNum)}
                     disabled={pageNum === '...' || pageNum === currentPage}
-                    className={`w-10 h-10 flex items-center justify-center rounded border ${
-                      pageNum === currentPage
-                        ? 'bg-[var(--color-bg-success)] text-white border-[var(--color-bg-success)]'
-                        : pageNum === '...'
+                    className={`w-10 h-10 flex items-center justify-center rounded border ${pageNum === currentPage
+                      ? 'bg-[var(--color-bg-success)] text-white border-[var(--color-bg-success)]'
+                      : pageNum === '...'
                         ? 'cursor-default'
                         : 'hover:bg-[var(--color-bg-secondary)] transition-colors'
-                    }`}
+                      }`}
                   >
                     {pageNum}
                   </button>
@@ -274,9 +291,8 @@ export function PeerDetails() {
                         placeholder={currentPage.toString()}
                         min="1"
                         max={totalPages}
-                        className={`w-20 px-3 py-2 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-bg-success)] text-center ${
-                          jumpError ? 'border-red-500' : ''
-                        }`}
+                        className={`w-20 px-3 py-2 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-bg-success)] text-center ${jumpError ? 'border-red-500' : ''
+                          }`}
                         aria-label={`Go to page (1-${totalPages})`}
                       />
                       <button
